@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tap Empire — Clicker</title>
+  <meta name="description" content="Mini clicker game HTML5 ad-ready: facile da pubblicare con slot pubblicitarie e salvataggio locale." />
+  <style>
+    :root{
+      --bg:#0f1223;--card:#171a2e;--muted:#8ea0ff;--text:#e8edff;--accent:#6cf;--accent2:#7dffb3;--danger:#ff6b6b;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text); background: radial-gradient(1200px 800px at 70% -10%, #1a1e3b, var(--bg));
+      display:flex; align-items:center; justify-content:center; padding:16px;
+    }
+    .app{width:min(920px,100%);}
+    .row{display:grid; gap:16px; grid-template-columns: 1fr;}
+    @media(min-width:840px){.row{grid-template-columns: 2fr 1fr;}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:16px; box-shadow:0 20px 60px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+    }
+    .brand{display:flex; align-items:center; gap:12px;}
+    .logo{width:36px; height:36px; border-radius:10px; background:conic-gradient(from 0deg, var(--accent), var(--accent2), var(--muted), var(--accent));}
+    h1{font-size: clamp(22px, 2.6vw, 30px); margin:0}
+    .muted{opacity:.8}
+    .stats{display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:12px}
+    .stat{background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; text-align:center}
+    .stat .label{font-size:12px; opacity:.7}
+    .big{font-size: clamp(28px, 6vw, 56px); font-weight:900; letter-spacing:.5px}
+    .tap{display:flex; align-items:center; justify-content:center; height:330px; border-radius:18px;
+      background: radial-gradient(250px 150px at 50% 30%, rgba(255,255,255,.08), rgba(255,255,255,.02)); border:1px dashed rgba(255,255,255,.12);
+      cursor:pointer; user-select:none; position:relative; overflow:hidden}
+    .tap:active{transform: translateY(1px)}
+    .spark{position:absolute; pointer-events:none; font-weight:800; text-shadow:0 6px 20px rgba(0,0,0,.6)}
+    .store h2{margin:6px 0 10px}
+    .item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:12px; margin:8px 0;
+      background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.08)}
+    .item small{opacity:.8}
+    button{appearance:none; border:none; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; color:#081018; background:var(--accent2)}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    .ad{display:grid; place-items:center; height:90px; border:2px dashed rgba(255,255,255,.2); border-radius:14px; margin:10px 0; background:rgba(0,0,0,.18)}
+    .ad span{font-size:12px; opacity:.8}
+    .footer{opacity:.7; font-size:12px; text-align:center; margin-top:10px}
+    a{color:var(--muted); text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card" style="margin-bottom:12px">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Tap Empire <span class="muted">· Clicker</span></h1>
+          <div class="muted" style="font-size:14px">Clicca per guadagnare monete, compra upgrade, scala la classifica! (Demo ad‑ready)</div>
+        </div>
+      </div>
+      <!-- TOP AD SLOT (leaderboard 728x90 / responsive) -->
+      <div id="ad-top" class="ad"><span>Ad Slot — TOP (728x90)</span></div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="stats">
+          <div class="stat"><div class="label">Monete</div><div id="coins" class="big">0</div></div>
+          <div class="stat"><div class="label">Per click</div><div id="perClick" class="big">1</div></div>
+          <div class="stat"><div class="label">Auto/sec</div><div id="auto" class="big">0</div></div>
+        </div>
+        <div id="tap" class="tap" aria-label="Tocca per guadagnare" role="button">
+          <div class="muted">Tocca / clicca per guadagnare</div>
+        </div>
+        <!-- BOTTOM AD SLOT (banner 320x50 / responsive) -->
+        <div id="ad-bottom" class="ad"><span>Ad Slot — BOTTOM (320x50)</span></div>
+        <div class="footer">Salvataggio locale automatico · <a href="#" id="reset">Resetta progresso</a></div>
+      </div>
+
+      <div class="card store">
+        <h2>Negozio</h2>
+        <div class="item">
+          <div>
+            <div><strong>+1 per click</strong></div>
+            <small>Costo: <span id="cost-click">10</span></small>
+          </div>
+          <button id="buy-click">Compra</button>
+        </div>
+        <div class="item">
+          <div>
+            <div><strong>Autoclicker</strong></div>
+            <small>+1 al secondo · Costo: <span id="cost-auto">50</span></small>
+          </div>
+          <button id="buy-auto">Compra</button>
+        </div>
+        <div class="item">
+          <div>
+            <div><strong>Moltiplicatore x2 (30s)</strong></div>
+            <small>Effetto temporaneo · Costo: <span id="cost-boost">100</span></small>
+          </div>
+          <button id="buy-boost">Attiva</button>
+        </div>
+        <div class="item">
+          <div>
+            <div><strong>Banner affiliato (facoltativo)</strong></div>
+            <small>Inserisci un link di affiliazione nel codice ↓</small>
+          </div>
+          <a id="aff" href="#" target="_blank"><button>Visita</button></a>
+        </div>
+        <!-- SIDE AD SLOT (rectangle 300x250 / responsive) -->
+        <div id="ad-side" class="ad" style="height:250px"><span>Ad Slot — SIDE (300x250)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================
+       SALVATAGGIO E STATO
+       ========================= */
+    const state = JSON.parse(localStorage.getItem('tapEmpireState')||'{}');
+    const game = {
+      coins: state.coins ?? 0,
+      perClick: state.perClick ?? 1,
+      autoPerSec: state.autoPerSec ?? 0,
+      costClick: state.costClick ?? 10,
+      costAuto: state.costAuto ?? 50,
+      costBoost: state.costBoost ?? 100,
+      boostUntil: state.boostUntil ?? 0,
+      affUrl: state.affUrl ?? ''
+    };
+
+    const $ = s=>document.querySelector(s);
+    const el = {
+      coins: $('#coins'), perClick: $('#perClick'), auto: $('#auto'), tap: $('#tap'),
+      cClick: $('#cost-click'), cAuto: $('#cost-auto'), cBoost: $('#cost-boost'),
+      bClick: $('#buy-click'), bAuto: $('#buy-auto'), bBoost: $('#buy-boost'),
+      reset: $('#reset'), aff: $('#aff')
+    };
+
+    function save(){
+      localStorage.setItem('tapEmpireState', JSON.stringify(game));
+    }
+
+    function fmt(n){
+      if(n<1000) return n.toString();
+      const units=['K','M','B','T'];
+      let u=-1; let x=n;
+      while(x>=1000 && u<units.length-1){x/=1000; u++;}
+      return x.toFixed(2).replace(/\.00$/,'')+units[u];
+    }
+
+    function render(){
+      const boostActive = Date.now() < game.boostUntil;
+      el.coins.textContent = fmt(Math.floor(game.coins));
+      el.perClick.textContent = fmt(game.perClick * (boostActive?2:1));
+      el.auto.textContent = fmt(game.autoPerSec);
+      el.cClick.textContent = fmt(game.costClick);
+      el.cAuto.textContent = fmt(game.costAuto);
+      el.cBoost.textContent = fmt(game.costBoost);
+      el.aff.href = game.affUrl || '#';
+      el.aff.parentElement.style.opacity = game.affUrl?1:.6;
+    }
+
+    function spark(x,y,text){
+      const s=document.createElement('div');
+      s.className='spark'; s.style.left=x+'px'; s.style.top=y+'px'; s.textContent='+'+text;
+      s.style.transform='translate(-50%,-50%) scale(1)'; s.style.opacity='1'; s.style.fontSize='18px';
+      el.tap.appendChild(s);
+      requestAnimationFrame(()=>{
+        s.animate([
+          {transform:'translate(-50%,-50%) scale(1)', opacity:1},
+          {transform:'translate(-50%,-110%) scale(1.6)', opacity:0}
+        ],{duration:600, easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>s.remove();
+      });
+    }
+
+    /* =========================
+       LOGICA DI GIOCO
+       ========================= */
+    el.tap.addEventListener('click', (e)=>{
+      const boostActive = Date.now() < game.boostUntil;
+      const add = game.perClick * (boostActive?2:1);
+      game.coins += add;
+      spark(e.offsetX, e.offsetY, add);
+      render(); save();
+    });
+
+    el.bClick.addEventListener('click', ()=>{
+      if(game.coins < game.costClick) return;
+      game.coins -= game.costClick; game.perClick += 1; game.costClick = Math.ceil(game.costClick*1.35);
+      render(); save();
+    });
+
+    el.bAuto.addEventListener('click', ()=>{
+      if(game.coins < game.costAuto) return;
+      game.coins -= game.costAuto; game.autoPerSec += 1; game.costAuto = Math.ceil(game.costAuto*1.5);
+      render(); save();
+    });
+
+    el.bBoost.addEventListener('click', ()=>{
+      if(game.coins < game.costBoost) return;
+      game.coins -= game.costBoost; game.boostUntil = Date.now()+30000; game.costBoost = Math.ceil(game.costBoost*1.8);
+      render(); save();
+    });
+
+    // Autoclicker loop
+    setInterval(()=>{
+      if(game.autoPerSec>0){ game.coins += game.autoPerSec; render(); save(); }
+      // rerender to update boost countdown
+      if(Date.now()%1000<60) render();
+    },1000);
+
+    // Reset
+    el.reset.addEventListener('click',(e)=>{
+      e.preventDefault(); if(!confirm('Sicuro di voler resettare il progresso?')) return;
+      localStorage.removeItem('tapEmpireState'); location.reload();
+    });
+
+    render();
+
+    /* =========================
+       MONETIZZAZIONE
+       - Pubblicità display: AdSense/Ad Manager/Ezoic
+       - Interstitial/Rewarded (mobile): AdMob/Unity Ads (se confezioni come app)
+       - Affiliazione: imposta game.affUrl con il tuo link
+       ========================= */
+
+    // 1) INSERISCI QUI IL TUO SCRIPT ADSENSE (o Ezoic/Ad Manager)
+    // Esempio (sostituisci il client!):
+    // const adScript = document.createElement('script');
+    // adScript.async = true;
+    // adScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXX';
+    // adScript.crossOrigin = 'anonymous';
+    // document.head.appendChild(adScript);
+
+    // 2) Poi sostituisci i placeholder con i blocchi <ins class="adsbygoogle">...
+    //    oppure monta i tuoi widget pubblicitari dentro #ad-top, #ad-bottom, #ad-side.
+
+    // 3) AFFILIAZIONE: imposta un link qui sotto (facoltativo)
+    //    Esempio Amazon: game.affUrl = 'https://www.amazon.it/?tag=TUO-TAG-21'; save(); render();
+
+  </script>
+</body>
+</html>
